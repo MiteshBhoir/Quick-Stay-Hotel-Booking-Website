@@ -1,7 +1,7 @@
-import React from 'react'
-import HotelCard from './hotelCard'
-import Title from './Title'
-import { useAppContext } from '../context/AppContext.jsx'
+import React from 'react'   
+import { useAppContext } from '../context/AppContext';
+import Title from './Title';
+import HotelCard from './HotelCard';
 const FeaturedDestinations = () => {
     const { navigate, rooms } = useAppContext();
     return rooms.length > 0 && (
