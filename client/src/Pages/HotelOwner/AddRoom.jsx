@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
 import Title from '../../Components/Title'
 import { assets } from '../../assets/assets'
+import { useAppContext } from '../../context/AppContext'
+import toast from 'react-hot-toast'
 
 const AddRoom = () => {
+  const { axios, getToken } = useAppContext();
   const [images, setImages] = useState({
     1: null,
     2: null,
@@ -20,8 +23,59 @@ const AddRoom = () => {
       'Pool Access': false,
     }
   })
+  const [loading, setLoading] = useState(false);
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    // check if all inputs are filled 
+    if (!inputs.roomType || !inputs.pricePerNight || !inputs.amenities || !Object.values(images).some(image => image)) {
+      toast.error("Please fill in all the details");
+      return;
+    }
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('roomType', inputs.roomType);
+      // formData.append('pricePerNight', inputs.pricePerNight);
+      formData.append('pricePerNight', Number(inputs.pricePerNight));
+
+      // converting amenities to array and keeping only enabled amenities 
+      const amenities = Object.keys(inputs.amenities).filter(key => inputs.amenities[key]);
+      formData.append('amenities', JSON.stringify(amenities));
+
+      // Adding images to formData 
+      Object.keys(images).forEach((key) => {
+        images[key] && formData.append('images', images[key]);
+      })
+      const { data } = await axios.post('/api/rooms/', formData, {
+        headers: { Authorization: `Bearer ${await getToken()}` }
+      })
+      if (data.success) {
+        toast.success(data.message);
+        setInputs({
+          roomType: '',
+          pricePerNight: 0,
+          amenities: {
+            'Free Wifi': false,
+            'Free Breakfast': false,
+            'Room Service': false,
+            'Mountain View': false,
+            'Pool Access': false,
+          }
+        })
+        setImages({ 1: null, 2: null, 3: null, 4: null })
+      } else {
+        toast.error(data.message);
+      }
+
+    } catch (error) {
+      toast.error(error.message);
+
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
-    <form action="">
+    <form onSubmit={onSubmitHandler}>
       <Title align='left' font='outfit' title='Add Room' subTitle='Fill in the details carefully and accurate room details, pricing, and amenities, to enhance the user booking experience' />
       {/* upload area for images  */}
       <p className='text-gray-800 mt-10'>Images</p>
@@ -50,7 +104,7 @@ const AddRoom = () => {
           <p className='mt-4 text-gray-800'>
             Price <span className='text-xs'>/night</span>
           </p>
-          <input type="number" placeholder='0' className='border border-gray-300 mt-1 rounded p-2 w-24' value={inputs.pricePerNight} onChange={e => ({ ...inputs, pricePerNight: e.target.value })} />
+          <input type="Number" className='border border-gray-300 mt-1 rounded p-2 w-24' value={inputs.pricePerNight} onChange={e => setInputs({ ...inputs, pricePerNight: e.target.value })} />
         </div>
       </div>
       <p className='text-gray-800 mt-4'>Amenities</p>

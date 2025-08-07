@@ -1,0 +1,16 @@
+import { getAuth } from "@clerk/express";
+import User from "../models/User.js";
+
+// MIDDLEWARE TO CHECK IF USER IS AUTHENTICATED
+
+export const protect = async (req, res, next) => {
+  const { userId } = req.auth();
+  if (!userId) {
+    res.json({ success: false, message: "Not Authenticated" });
+  }else{
+    const user = await User.findById(userId);
+    req.user=user;
+    next();
+  }
+
+};

@@ -1,8 +1,29 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Title from '../Components/Title'
-import { assets, userBookingsDummyData } from '../assets/assets'
+import { assets } from '../assets/assets'
+import { useAppContext } from '../context/AppContext'
+import toast from 'react-hot-toast'
 const MyBookings = () => {
-    const [booking, setBookings] = useState(userBookingsDummyData)
+    ;
+    const { user, getToken, axios } = useAppContext();
+    const [booking, setBookings] = useState([]);
+    const fetchuserBookings = async () => {
+        try {
+            const { data } = await axios.get('/api/bookings/user', { headers: { Authorization: `Bearer ${await getToken()}` } });
+            if (data.success) {
+                setBookings(data.bookings);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message);
+        }
+    }
+    useEffect(() => {
+        if (user) {
+            fetchuserBookings()
+        }
+    }, [user])
     return (
         <div className='py-28 md:pb-35 md:pt-32 px-4 md:px-16 lg:px-24 xl:px-32'>
             <Title title="My Bookings" subTitle="Easily manage your past, current and upcoming hotel reservations in one place.Plan your trips seamlessly with just a few clicks." align="left" />
@@ -50,7 +71,7 @@ const MyBookings = () => {
                             <div className='flex items-center gap-2'>
                                 <div className={`h-3 w-3 rounded-full ${booking.isPaid ? "bg-green-500" : "bg-red-500"}`}>   </div>
                                 <p className={`text-sm ${booking.isPaid ? "text-green-500" : "text-red-500"}`}>
-                                    {booking.paid ? "Paid" : "Unpaid"}
+                                    {booking.isPaid ? "Paid" : "Unpaid"}
                                 </p>
                             </div>
                             {!booking.isPaid && (
