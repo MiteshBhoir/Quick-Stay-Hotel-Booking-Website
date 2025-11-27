@@ -35,7 +35,9 @@ const Navbar = () => {
         setIsScrolled(prev => location.pathname !== '/' ? true : prev)
 
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 10);
+            if (location.pathname == '/') {
+                setIsScrolled(window.scrollY > 5);
+            }
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
